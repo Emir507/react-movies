@@ -11,6 +11,7 @@ class App extends React.Component {
   state = {
     users: [],
     movies: [],
+    genres: [],
     loading: false,
     fetchError: false,
     alerts: [],
@@ -28,6 +29,7 @@ class App extends React.Component {
       });
       this.addAlert(err.message, 'error');
     });
+    this.fetchGenres();
   }
 
   async fetchMovies(searchString = 'return') {
@@ -45,6 +47,16 @@ class App extends React.Component {
       loading: false,
       totalPages: data.total_pages,
       noResultsFound: data.results.length ? false : true,
+    });
+  }
+
+  async fetchGenres() {
+    const res = await fetch(
+      `https://api.themoviedb.org/3/genre/movie/list?api_key=1330d97b1fc8cf61cfc0d7240d769521`,
+    );
+    const data = await res.json();
+    this.setState({
+      genres: data.genres,
     });
   }
 
@@ -92,6 +104,7 @@ class App extends React.Component {
       currentPage,
       totalPages,
       noResultsFound,
+      genres,
     } = this.state;
 
     const spinStyles = {
@@ -123,7 +136,7 @@ class App extends React.Component {
         >
           {movies.map((item) => (
             <Col lg={10} key={item.id}>
-              <Movie {...item} />
+              <Movie {...item} genres={genres} />
             </Col>
           ))}
         </Row>

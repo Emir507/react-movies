@@ -9,7 +9,8 @@ import {
 } from 'antd';
 class Movie extends Component {
   render() {
-    const { title, release_date, genre_ids, overview, poster_path } =
+    // console.log(this.props);
+    const { title, release_date, genre_ids, overview, poster_path, genres } =
       this.props;
     const imageStyles = { width: '100%' };
     const placeholderImage =
@@ -41,11 +42,14 @@ class Movie extends Component {
                 textAlign: 'left',
               }}
             >
-              <span>{title}</span>
-              <span>{date}</span>
-              <div style={{ display: 'flex' }}>
+              <span style={{ marginBottom: '5px' }}>{title}</span>
+              <span style={{ marginBottom: '5px' }}>{date}</span>
+              <div style={{ display: 'flex', marginBottom: '5px' }}>
                 {genre_ids.map((genre) => (
-                  <Tag key={genre}>{genre}</Tag>
+                  <Tag key={genre}>
+                    {genres.find((item) => item.id === genre) &&
+                      genres.find((item) => item.id === genre).name}
+                  </Tag>
                 ))}
               </div>
               <p>{overview}</p>
