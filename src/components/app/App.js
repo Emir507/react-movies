@@ -22,13 +22,11 @@ class App extends React.Component {
 
   componentDidMount() {
     this.fetchMovies().catch((err) => {
-      setTimeout(() => {
-        this.setState({
-          loading: false,
-          fetchError: true,
-        });
-        this.addAlert(err.message, 'error');
-      }, 2000);
+      this.setState({
+        loading: false,
+        fetchError: true,
+      });
+      this.addAlert(err.message, 'error');
     });
   }
 
@@ -42,14 +40,12 @@ class App extends React.Component {
     );
     const data = await res.json();
 
-    setTimeout(() => {
-      this.setState({
-        movies: data.results,
-        loading: false,
-        totalPages: data.total_pages,
-        noResultsFound: data.results.length ? false : true,
-      });
-    }, 2000);
+    this.setState({
+      movies: data.results,
+      loading: false,
+      totalPages: data.total_pages,
+      noResultsFound: data.results.length ? false : true,
+    });
   }
 
   search = debounce(
@@ -72,11 +68,9 @@ class App extends React.Component {
       alerts: [{ id: 1, type, text }],
     });
 
-    setTimeout(() => {
-      this.setState({
-        alerts: [],
-      });
-    }, 2000);
+    this.setState({
+      alerts: [],
+    });
   }
 
   onPageChange = (page) => {
