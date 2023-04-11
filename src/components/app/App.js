@@ -52,7 +52,10 @@ class App extends React.Component {
     }, 2000);
   }
 
-  search = debounce((searchString) => this.fetchMovies(searchString), 500);
+  search = debounce(
+    (searchString) => searchString && this.fetchMovies(searchString),
+    500,
+  );
 
   onInput = (e) => {
     this.setState(
@@ -130,7 +133,7 @@ class App extends React.Component {
             </Col>
           ))}
         </Row>
-        {noResultsFound && (
+        {!noResultsFound && (
           <ConfigProvider
             theme={{
               token: {
