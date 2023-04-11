@@ -1,16 +1,24 @@
 import React from 'react';
-import { Row, Col, Spin, Alert, Input, Pagination, ConfigProvider } from 'antd';
+import { Row, Col, Input, Tabs } from 'antd';
 import 'antd/dist/reset.css';
 import { debounce } from 'lodash';
 
 import './App.css';
+import GenresContext from '../genres-context/GenresContext';
+
 import Movie from '../movie-item';
 import Error from '../error';
+import Alerts from '../alerts';
+import Loader from '../loader';
+import Pagination from '../pagination';
+import RatedMovies from '../rated-movies';
+import SearchResultMovies from '../search-result-movies';
 
 class App extends React.Component {
   state = {
     users: [],
     movies: [],
+    rated: [],
     genres: [],
     loading: false,
     fetchError: false,
@@ -22,7 +30,7 @@ class App extends React.Component {
   };
 
   componentDidMount() {
-    this.fetchMovies().catch((err) => {
+    this.fetchMovies(this.state.searchString).catch((err) => {
       this.setState({
         loading: false,
         fetchError: true,
@@ -32,7 +40,7 @@ class App extends React.Component {
     this.fetchGenres();
   }
 
-  async fetchMovies(searchString = 'return') {
+  async fetchMovies(searchString) {
     const { currentPage } = this.state;
     this.setState({
       loading: true,
@@ -41,7 +49,9 @@ class App extends React.Component {
       `https://api.themoviedb.org/3/search/movie?api_key=1330d97b1fc8cf61cfc0d7240d769521&query=${searchString}&page=${currentPage}`,
     );
     const data = await res.json();
-
+    data.results.forEach((element) => {
+      element.rating = 0;
+    });
     this.setState({
       movies: data.results,
       loading: false,
@@ -79,10 +89,11 @@ class App extends React.Component {
     this.setState({
       alerts: [{ id: 1, type, text }],
     });
-
-    this.setState({
-      alerts: [],
-    });
+    setTimeout(() => {
+      this.setState({
+        alerts: [],
+      });
+    }, 2000);
   }
 
   onPageChange = (page) => {
@@ -94,9 +105,23 @@ class App extends React.Component {
     );
   };
 
+  onRatingChange = (val, id) => {
+    const movies = [...this.state.movies];
+    const movie = movies.find((movie) => movie.id === id);
+    movie.rating = val;
+    this.setState({
+      movies: movies,
+    });
+    if (this.state.rated.find((movie) => movie.id === id)) return;
+    this.setState({
+      rated: [movie, ...this.state.rated],
+    });
+  };
+
   render() {
     const {
       movies,
+      rated,
       loading,
       fetchError,
       alerts,
@@ -107,25 +132,7 @@ class App extends React.Component {
       genres,
     } = this.state;
 
-    const spinStyles = {
-      position: 'absolute',
-      top: '50%',
-      left: '50%',
-      transform: 'translate(-50%, -50%)',
-    };
-    const alertStyles = {
-      position: 'fixed',
-      bottom: '20px',
-      right: '20px',
-      width: '300px',
-      zIndex: 10,
-    };
-
-    const spinElement = (
-      <div style={spinStyles}>
-        <Spin size="large" />
-      </div>
-    );
+    // components
     const mainElement = (
       <>
         {noResultsFound && 'no found'}
@@ -136,49 +143,49 @@ class App extends React.Component {
         >
           {movies.map((item) => (
             <Col lg={10} key={item.id}>
-              <Movie {...item} genres={genres} />
+              <Movie item={item} onRatingChange={this.onRatingChange} />
             </Col>
           ))}
         </Row>
         {!noResultsFound && (
-          <ConfigProvider
-            theme={{
-              token: {
-                colorText: '#595959',
-                colorBgContainer: '#1890FF',
-                colorBorder: '#1890FF',
-                colorPrimary: 'white',
-                controlItemBgActiveDisabled: '#595959',
-              },
-            }}
-          >
-            <Pagination
-              current={currentPage}
-              onChange={this.onPageChange}
-              total={totalPages}
-              showTotal={(total) => `Total ${total} items`}
-            />
-          </ConfigProvider>
+          <Pagination
+            currentPage={currentPage}
+            onPageChange={this.onPageChange}
+            totalPages={totalPages}
+          />
         )}
       </>
     );
-    const errorElement = <Error />;
-    const alertElements = alerts.map((alert) => (
-      <Alert key={alert.id} message={alert.text} type={alert.type} />
-    ));
-
-    return (
-      <div className="App">
-        <div style={alertStyles}>{alertElements}</div>
-        <Input
-          placeholder="Type to search"
-          style={{ marginBottom: '20px' }}
+    const searchTabContent = (
+      <>
+        <SearchResultMovies
+          searchString={searchString}
           onInput={this.onInput}
-          value={searchString}
+          loading={loading}
+          fetchError={fetchError}
         />
         {!loading && !fetchError && mainElement}
-        {loading && spinElement}
-        {!loading && fetchError && errorElement}
+      </>
+    );
+    // tabs items
+    const items = [
+      {
+        key: '1',
+        label: `Search`,
+        children: searchTabContent,
+      },
+      {
+        key: '2',
+        label: `Rated`,
+        children: <RatedMovies rated={rated} />,
+      },
+    ];
+    return (
+      <div className="App">
+        <GenresContext.Provider value={genres}>
+          <Tabs defaultActiveKey="1" items={items} />
+          <Alerts alerts={alerts} />
+        </GenresContext.Provider>
       </div>
     );
   }

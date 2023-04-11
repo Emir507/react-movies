@@ -37,3 +37,8 @@
     transform: rotate(360deg);
   }
 }
+.ant-tabs-nav {
+  margin-left: auto !important;
+  margin-right: auto !important;
+  width: fit-content;
+}

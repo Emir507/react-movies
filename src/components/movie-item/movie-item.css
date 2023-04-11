@@ -1,0 +1,17 @@
+.genres__container {
+  display: flex;
+  flex-wrap: wrap;
+  margin: -5px;
+}
+
+.text-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 10px;
+  text-align: left;
+}
+
+.poster img {
+  width: 100%;
+}
